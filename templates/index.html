@@ -46,38 +46,11 @@
                 <ul class="list hidden" id="users-list"></ul>
             </div>
         </div>
-
-        <!-- Orders Section -->
-        <div class="section hidden" id="orders-section">
-            <h2><i class="fas fa-box"></i> Orders for <span id="selected-user"></span></h2>
-            <div id="orders-content">
-                <div class="loading" id="orders-loading">
-                    <div class="loading-spinner"></div>
-                    <p>Loading orders...</p>
-                </div>
-                <ul class="list hidden" id="orders-list"></ul>
-            </div>
-        </div>
-
-        <!-- Items Section -->
-        <div class="section hidden" id="items-section">
-            <h2><i class="fas fa-list"></i> Items in Order <span id="selected-order"></span></h2>
-            <div id="items-content">
-                <div class="loading" id="items-loading">
-                    <div class="loading-spinner"></div>
-                    <p>Loading items...</p>
-                </div>
-                <ul class="list hidden" id="items-list"></ul>
-            </div>
-        </div>
     </div>
 
     <script>
         // DOM elements
         const searchInput = document.getElementById('search');
-        const usersSection = document.getElementById('users-section');
-        const ordersSection = document.getElementById('orders-section');
-        const itemsSection = document.getElementById('items-section');
         
         // Search functionality with debouncing
         let searchTimeout;
@@ -139,7 +112,10 @@
                     </div>
                 `;
                 
-                li.addEventListener('click', () => loadOrders(user.id, `${user.first_name} ${user.last_name}`));
+                // Open orders page in new tab
+                li.addEventListener('click', () => {
+                    window.open(`/user/${user.id}/orders`, '_blank');
+                });
                 usersList.appendChild(li);
             });
             
@@ -156,155 +132,6 @@
             });
         }
 
-        // Load orders function
-        async function loadOrders(userId, userName) {
-            document.getElementById('selected-user').textContent = userName;
-            showOrdersLoading();
-            showSection(ordersSection);
-            hideSection(itemsSection);
-            
-            try {
-                const response = await fetch(`/api/users/${userId}/orders`);
-                const orders = await response.json();
-                
-                if (orders.length === 0) {
-                    showOrdersEmpty();
-                } else {
-                    displayOrders(orders);
-                }
-            } catch (error) {
-                console.error('Error loading orders:', error);
-                showOrdersEmpty('Error loading orders. Please try again.');
-            }
-        }
-
-        // Display orders function
-        function displayOrders(orders) {
-            const ordersList = document.getElementById('orders-list');
-            const ordersLoading = document.getElementById('orders-loading');
-            
-            ordersList.innerHTML = '';
-            
-            orders.forEach(order => {
-                const li = document.createElement('li');
-                li.className = 'list-item order-item';
-                
-                // Format date
-                const orderDate = new Date(order.created_at);
-                const formattedDate = orderDate.toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric'
-                });
-                
-                // Get status class
-                const statusClass = getStatusClass(order.status);
-                
-                li.innerHTML = `
-                    <div class="order-info">
-                        <div class="order-id">Order #${order.order_id}</div>
-                        <div class="order-status ${statusClass}">${order.status}</div>
-                        <div class="order-details">
-                            <div class="order-date">
-                                <i class="fas fa-calendar date-icon"></i>
-                                ${formattedDate}
-                            </div>
-                            <div class="order-items-count">
-                                <i class="fas fa-boxes items-icon"></i>
-                                ${order.num_of_item} items
-                            </div>
-                        </div>
-                    </div>
-                    <div class="order-action">
-                        <i class="fas fa-chevron-right"></i>
-                    </div>
-                `;
-                
-                li.addEventListener('click', () => loadItems(order.order_id));
-                ordersList.appendChild(li);
-            });
-            
-            // Show orders list
-            ordersLoading.classList.add('hidden');
-            ordersList.classList.remove('hidden');
-            
-            // Animate list items
-            const listItems = ordersList.querySelectorAll('.list-item');
-            listItems.forEach((item, index) => {
-                item.style.animationDelay = `${index * 0.1}s`;
-                item.classList.add('slide-up');
-            });
-        }
-
-        // Load items function
-        async function loadItems(orderId) {
-            document.getElementById('selected-order').textContent = orderId;
-            showItemsLoading();
-            showSection(itemsSection);
-            
-            try {
-                const response = await fetch(`/api/orders/${orderId}/items`);
-                const items = await response.json();
-                
-                if (items.length === 0) {
-                    showItemsEmpty();
-                } else {
-                    displayItems(items);
-                }
-            } catch (error) {
-                console.error('Error loading items:', error);
-                showItemsEmpty('Error loading items. Please try again.');
-            }
-        }
-
-        // Display items function
-        function displayItems(items) {
-            const itemsList = document.getElementById('items-list');
-            const itemsLoading = document.getElementById('items-loading');
-            
-            itemsList.innerHTML = '';
-            
-            items.forEach(item => {
-                const li = document.createElement('li');
-                li.className = 'product-item';
-                
-                li.innerHTML = `
-                    <div class="product-info">
-                        <div class="product-name">${item.product_name}</div>
-                        <div class="product-brand">${item.brand}</div>
-                        <div class="product-category">${item.category}</div>
-                    </div>
-                    <div class="product-details">
-                        <div class="product-quantity">Qty: ${item.quantity}</div>
-                        <div class="product-price">$${parseFloat(item.retail_price).toFixed(2)}</div>
-                    </div>
-                `;
-                
-                itemsList.appendChild(li);
-            });
-            
-            // Show items list
-            itemsLoading.classList.add('hidden');
-            itemsList.classList.remove('hidden');
-            
-            // Animate list items
-            const listItems = itemsList.querySelectorAll('.product-item');
-            listItems.forEach((item, index) => {
-                item.style.animationDelay = `${index * 0.1}s`;
-                item.classList.add('slide-up');
-            });
-        }
-
-        // Helper functions for showing/hiding sections
-        function showSection(section) {
-            section.classList.remove('hidden');
-            section.classList.add('fade-in');
-        }
-
-        function hideSection(section) {
-            section.classList.add('hidden');
-        }
-
         // Helper functions for loading states
         function showUsersLoading() {
             document.getElementById('users-empty').classList.add('hidden');
@@ -318,59 +145,6 @@
             empty.classList.remove('hidden');
             document.getElementById('users-loading').classList.add('hidden');
             document.getElementById('users-list').classList.add('hidden');
-        }
-
-        function showOrdersLoading() {
-            document.getElementById('orders-list').classList.add('hidden');
-            document.getElementById('orders-loading').classList.remove('hidden');
-        }
-
-        function showOrdersEmpty(message = 'No orders found for this user') {
-            const ordersList = document.getElementById('orders-list');
-            const ordersLoading = document.getElementById('orders-loading');
-            
-            ordersList.innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-box-open empty-state-icon"></i>
-                    <h3>${message}</h3>
-                </div>
-            `;
-            
-            ordersLoading.classList.add('hidden');
-            ordersList.classList.remove('hidden');
-        }
-
-        function showItemsLoading() {
-            document.getElementById('items-list').classList.add('hidden');
-            document.getElementById('items-loading').classList.remove('hidden');
-        }
-
-        function showItemsEmpty(message = 'No items found in this order') {
-            const itemsList = document.getElementById('items-list');
-            const itemsLoading = document.getElementById('items-loading');
-            
-            itemsList.innerHTML = `
-                <div class="loading">
-                    <i class="fas fa-list empty-state-icon"></i>
-                    <h3>${message}</h3>
-                </div>
-            `;
-            
-            itemsLoading.classList.add('hidden');
-            itemsList.classList.remove('hidden');
-        }
-
-        // Helper function to get status class
-        function getStatusClass(status) {
-            const statusLower = status.toLowerCase();
-            if (statusLower.includes('pending') || statusLower.includes('processing')) {
-                return 'status-pending';
-            } else if (statusLower.includes('completed') || statusLower.includes('delivered')) {
-                return 'status-completed';
-            } else if (statusLower.includes('cancelled') || statusLower.includes('refunded')) {
-                return 'status-cancelled';
-            }
-            return 'status-pending';
         }
 
         // Focus search input on page load

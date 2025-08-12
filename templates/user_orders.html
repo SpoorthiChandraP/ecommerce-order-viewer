@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orders for {{ user.first_name }} {{ user.last_name }} - Order Viewer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header Section -->
+        <div class="header">
+            <h1><i class="fas fa-box"></i> Orders</h1>
+            <p>Orders for {{ user.first_name }} {{ user.last_name }}</p>
+        </div>
+
+        <!-- User Info Section -->
+        <div class="section">
+            <h2><i class="fas fa-user"></i> User Information</h2>
+            <div class="user-details">
+                <div class="user-info-card">
+                    <div class="user-name">{{ user.first_name }} {{ user.last_name }}</div>
+                    <div class="user-email">{{ user.email }}</div>
+                    <div class="user-location">
+                        <i class="fas fa-map-marker-alt location-icon"></i>
+                        {{ user.city }}, {{ user.state }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Orders Section -->
+        <div class="section">
+            <h2><i class="fas fa-shopping-bag"></i> Order History</h2>
+            <div id="orders-content">
+                {% if orders %}
+                    <ul class="list" id="orders-list">
+                        {% for order in orders %}
+                        <li class="list-item order-item" onclick="window.open('/order/{{ order.order_id }}/items', '_blank')">
+                            <div class="order-info">
+                                <div class="order-id">Order #{{ order.order_id }}</div>
+                                <div class="order-status status-{{ order.status.lower() if order.status else 'pending' }}">
+                                    {{ order.status if order.status else 'Pending' }}
+                                </div>
+                                <div class="order-details">
+                                    <div class="order-date">
+                                        <i class="fas fa-calendar date-icon"></i>
+                                        {{ order.created_at }}
+                                    </div>
+                                    <div class="order-items-count">
+                                        <i class="fas fa-boxes items-icon"></i>
+                                        {{ order.num_of_item }} items
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="order-action">
+                                <i class="fas fa-chevron-right"></i>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-box-open empty-state-icon"></i>
+                        <h3>No Orders Found</h3>
+                        <p>This user hasn't placed any orders yet.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Back Button -->
+        <div class="section">
+            <button class="back-button" onclick="window.close()">
+                <i class="fas fa-arrow-left"></i> Close Tab
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Add click event listeners to order items
+        document.querySelectorAll('.order-item').forEach(item => {
+            item.addEventListener('click', function() {
+                // The onclick attribute will handle opening in new tab
+            });
+        });
+    </script>
+</body>
+</html> 

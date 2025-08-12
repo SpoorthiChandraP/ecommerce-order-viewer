@@ -15,6 +15,53 @@ def get_db():
 def home():
     return render_template("index.html")
 
+# New route for user orders page
+@app.route("/user/<int:user_id>/orders")
+def user_orders_page(user_id):
+    conn = get_db()
+    
+    # Get user information
+    user = conn.execute("""
+        SELECT id, first_name, last_name, email, city, state
+        FROM users
+        WHERE id = ?
+    """, (user_id,)).fetchone()
+    
+    if not user:
+        conn.close()
+        return "User not found", 404
+    
+    # Get user's orders
+    orders = conn.execute("""
+        SELECT order_id, status, created_at, num_of_item
+        FROM orders
+        WHERE user_id = ?
+        ORDER BY created_at DESC
+    """, (user_id,)).fetchall()
+    
+    conn.close()
+    
+    return render_template("user_orders.html", user=user, orders=orders)
+
+# New route for order items page
+@app.route("/order/<int:order_id>/items")
+def order_items_page(order_id):
+    conn = get_db()
+    
+    # Get order items
+    items = conn.execute("""
+        SELECT oi.id, p.name AS product_name, p.brand, p.category,
+               COUNT(oi.id) as quantity, p.retail_price
+        FROM order_items oi
+        JOIN products p ON oi.product_id = p.id
+        WHERE oi.order_id = ?
+        GROUP BY p.id
+    """, (order_id,)).fetchall()
+    
+    conn.close()
+    
+    return render_template("order_items.html", order_id=order_id, items=items)
+
 # 1. Search for a user
 @app.route("/api/users")
 def search_users():
