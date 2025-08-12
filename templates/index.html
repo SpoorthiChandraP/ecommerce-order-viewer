@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Order Viewer</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        input { padding: 8px; width: 300px; }
+        .section { margin-top: 20px; }
+        .clickable { cursor: pointer; color: blue; }
+        .clickable:hover { text-decoration: underline; }
+        ul { list-style-type: none; padding: 0; }
+        li { margin: 5px 0; }
+    </style>
+</head>
+<body>
+    <h1>Order Viewer</h1>
+    <input type="text" id="search" placeholder="Search user by name or email">
+
+    <div class="section" id="users-section">
+        <h2>Users</h2>
+        <ul id="users-list"></ul>
+    </div>
+
+    <div class="section" id="orders-section" style="display:none;">
+        <h2>Orders for <span id="selected-user"></span></h2>
+        <ul id="orders-list"></ul>
+    </div>
+
+    <div class="section" id="items-section" style="display:none;">
+        <h2>Items in Order <span id="selected-order"></span></h2>
+        <ul id="items-list"></ul>
+    </div>
+
+<script>
+document.getElementById("search").addEventListener("keyup", function() {
+    const query = this.value.trim();
+    if (query.length < 2) return; // avoid too many requests
+    fetch(`/api/users?query=${encodeURIComponent(query)}`)
+        .then(res => res.json())
+        .then(users => {
+            const list = document.getElementById("users-list");
+            list.innerHTML = "";
+            users.forEach(u => {
+                const li = document.createElement("li");
+                li.className = "clickable";
+                li.textContent = `${u.first_name} ${u.last_name} (${u.email}) - ${u.city}, ${u.state}`;
+                li.onclick = () => loadOrders(u.id, `${u.first_name} ${u.last_name}`);
+                list.appendChild(li);
+            });
+        });
+});
+
+function loadOrders(userId, userName) {
+    document.getElementById("selected-user").textContent = userName;
+    fetch(`/api/users/${userId}/orders`)
+        .then(res => res.json())
+        .then(orders => {
+            const list = document.getElementById("orders-list");
+            list.innerHTML = "";
+            orders.forEach(o => {
+                const li = document.createElement("li");
+                li.className = "clickable";
+                li.textContent = `Order #${o.order_id} - ${o.status} - ${o.created_at} (${o.num_of_item} items)`;
+                li.onclick = () => loadItems(o.order_id);
+                list.appendChild(li);
+            });
+            document.getElementById("orders-section").style.display = "block";
+            document.getElementById("items-section").style.display = "none";
+        });
+}
+
+function loadItems(orderId) {
+    document.getElementById("selected-order").textContent = orderId;
+    fetch(`/api/orders/${orderId}/items`)
+        .then(res => res.json())
+        .then(items => {
+            const list = document.getElementById("items-list");
+            list.innerHTML = "";
+            items.forEach(i => {
+                const li = document.createElement("li");
+                li.textContent = `${i.product_name} (${i.brand}) - ${i.quantity} × $${i.retail_price}`;
+                list.appendChild(li);
+            });
+            document.getElementById("items-section").style.display = "block";
+        });
+}
+</script>
+</body>
+</html>
+
+
+<!-- <!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Order Viewer</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <h1>Search for a User</h1>
+  <input type="text" id="search" placeholder="Enter name or email">
+  <button onclick="searchUsers()">Search</button>
+
+  <table id="userTable">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Location</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+<script>
+function searchUsers() {
+  const query = document.getElementById('search').value;
+  fetch(`/api/users?query=${encodeURIComponent(query)}`)
+    .then(res => res.json())
+    .then(users => {
+      const tbody = document.querySelector('#userTable tbody');
+      tbody.innerHTML = '';
+      users.forEach(u => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td><a href="/user/${u.id}" target="_blank">${u.first_name} ${u.last_name}</a></td>
+          <td>${u.email}</td>
+          <td>${u.city}, ${u.state}</td>
+        `;
+        tbody.appendChild(row);
+      });
+    });
+}
+</script>
+</body>
+</html> -->
+
+
+<!-- <!DOCTYPE html>
+<html>
+<head>
+    <title>Order Viewer - Search Users</title>
+    <style>
+        body { font-family: Arial; margin: 20px; }
+        input[type=text] { padding: 8px; width: 300px; }
+        button { padding: 8px 12px; }
+        table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        a { text-decoration: none; color: blue; }
+    </style>
+</head>
+<body>
+    <h1>Order Viewer</h1>
+    <form method="get" action="/">
+        <input type="text" name="q" value="{{ query }}" placeholder="Search by name or email">
+        <button type="submit">Search</button>
+    </form>
+
+    {% if users %}
+        <h2>Users</h2>
+        <table>
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Location</th>
+            </tr>
+            {% for user in users %}
+            <tr>
+                <td>
+                    <a href="{{ url_for('view_user_orders', user_id=user.id) }}" target="_blank">
+                        {{ user.first_name }} {{ user.last_name }}
+                    </a>
+                </td>
+                <td>{{ user.email }}</td>
+                <td>{{ user.city }}, {{ user.state }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% elif query %}
+        <p>No users found.</p>
+    {% endif %}
+</body>
+</html> -->
