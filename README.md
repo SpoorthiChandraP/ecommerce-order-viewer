@@ -38,7 +38,6 @@ python app.py
 ```
 
 This will start the server, usually on http://localhost:5000.
-The backend exposes REST API endpoints used by the frontend
 
 ---
 
