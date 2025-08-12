@@ -38,7 +38,7 @@
                 {% if orders %}
                     <ul class="list" id="orders-list">
                         {% for order in orders %}
-                        <li class="list-item order-item" onclick="window.open('/order/{{ order.order_id }}/items', '_blank')">
+                        <li class="list-item order-item" onclick="window.location.href='/order/{{ order.order_id }}/items'">
                             <div class="order-info">
                                 <div class="order-id">Order #{{ order.order_id }}</div>
                                 <div class="order-status status-{{ order.status.lower() if order.status else 'pending' }}">
@@ -73,19 +73,10 @@
 
         <!-- Back Button -->
         <div class="section">
-            <button class="back-button" onclick="window.close()">
-                <i class="fas fa-arrow-left"></i> Close Tab
+            <button class="back-button" onclick="window.location.href='/'">
+                <i class="fas fa-arrow-left"></i> Back to Search
             </button>
         </div>
     </div>
-
-    <script>
-        // Add click event listeners to order items
-        document.querySelectorAll('.order-item').forEach(item => {
-            item.addEventListener('click', function() {
-                // The onclick attribute will handle opening in new tab
-            });
-        });
-    </script>
 </body>
 </html> 

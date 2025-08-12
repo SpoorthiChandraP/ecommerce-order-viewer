@@ -24,7 +24,7 @@
                     type="text" 
                     id="search" 
                     class="search-input" 
-                    placeholder="Search users by name, email, or location..."
+                    placeholder="Search users by name"
                     autocomplete="off"
                 >
             </div>
@@ -112,9 +112,9 @@
                     </div>
                 `;
                 
-                // Open orders page in new tab
+                // Navigate to user orders page in the same tab
                 li.addEventListener('click', () => {
-                    window.open(`/user/${user.id}/orders`, '_blank');
+                    window.location.href = `/user/${user.id}/orders`;
                 });
                 usersList.appendChild(li);
             });
